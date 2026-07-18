@@ -1,0 +1,97 @@
+(ns huntingtrapping.actor-test
+  (:require [clojure.test :refer [deftest is testing]]
+            [huntingtrapping.actor :as actor]
+            [huntingtrapping.store :as store]))
+
+(defn- fresh-store []
+  (let [st (store/mem-store)]
+    (store/register-operator! st {:operator-id "operator-1" :name "R. Okafor"})
+    (store/register-permit! st {:permit-id "P-1" :operator-id "operator-1"
+                                :name "trapping-license-2026"
+                                :max-supply-order-cost 5000})
+    st))
+
+(deftest commits-a-valid-log-harvest-record
+  (let [st (fresh-store)
+        graph (actor/build-graph {:store st})
+        request {:operator-id "operator-1" :op :log-harvest-record :stake :low
+                 :permit-id "P-1" :harvest-report-attached? true
+                 :species "beaver" :quantity 1 :location "trapline-north"}
+        result (actor/run-request! graph request {} "thread-1")]
+    (is (= :done (:status result)))
+    (is (some? (get-in result [:state :record])))
+    (is (= 1 (count (store/records-of st "operator-1"))))))
+
+(deftest holds-a-log-harvest-record-missing-harvest-report
+  (testing "logging a record with no attached harvest report is a fabricated record — hard hold, no human override path"
+    (let [st (fresh-store)
+          graph (actor/build-graph {:store st})
+          request {:operator-id "operator-1" :op :log-harvest-record :stake :low
+                   :permit-id "P-1" :harvest-report-attached? false}
+          result (actor/run-request! graph request {} "thread-2")]
+      (is (= :hold (:disposition (:state result))))
+      (is (empty? (store/records-of st "operator-1"))))))
+
+(deftest interrupts-then-approves-flagged-compliance-concern-on-human-approval
+  (testing "a flagged compliance concern always escalates and is never auto-commit-eligible; only human hunter/trapper approval advances it"
+    (let [st (fresh-store)
+          graph (actor/build-graph {:store st})
+          request {:operator-id "operator-1" :op :flag-compliance-concern :stake :low
+                   :permit-id "P-1"}
+          interrupted (actor/run-request! graph request {} "thread-3")]
+      (is (= :interrupted (:status interrupted)))
+      (is (empty? (store/records-of st "operator-1")))
+      (let [resumed (actor/approve! graph "thread-3")]
+        (is (= :done (:status resumed)))
+        (is (= 1 (count (store/records-of st "operator-1"))))))))
+
+(deftest interrupts-then-approves-over-threshold-supply-order-on-human-approval
+  (let [st (fresh-store)
+        graph (actor/build-graph {:store st})
+        request {:operator-id "operator-1" :op :coordinate-supply-order :stake :low
+                 :permit-id "P-1" :cost 50000}
+        interrupted (actor/run-request! graph request {} "thread-4")]
+    (is (= :interrupted (:status interrupted)))
+    (is (empty? (store/records-of st "operator-1")))
+    (let [resumed (actor/approve! graph "thread-4")]
+      (is (= :done (:status resumed)))
+      (is (= 1 (count (store/records-of st "operator-1")))))))
+
+(deftest commits-a-valid-schedule-equipment-operation
+  (let [st (fresh-store)
+        graph (actor/build-graph {:store st})
+        request {:operator-id "operator-1" :op :schedule-equipment-operation :stake :low
+                 :permit-id "P-1"}
+        result (actor/run-request! graph request {} "thread-5")]
+    (is (= :done (:status result)))
+    (is (= 1 (count (store/records-of st "operator-1"))))))
+
+(deftest holds-an-attempted-weapon-firing-op
+  (testing "even a directly-constructed request bypassing the advisor cannot reach commit for an op resembling firing a weapon — no human-approval path exists for a hard hold"
+    (let [st (fresh-store)
+          graph (actor/build-graph {:store st})
+          request {:operator-id "operator-1" :op :fire-weapon :stake :low
+                   :permit-id "P-1"}
+          result (actor/run-request! graph request {} "thread-6")]
+      (is (= :hold (:disposition (:state result))))
+      (is (empty? (store/records-of st "operator-1"))))))
+
+(deftest holds-an-attempted-trap-setting-op
+  (testing "even a directly-constructed request bypassing the advisor cannot reach commit for an op resembling setting/springing a trap — no human-approval path exists for a hard hold"
+    (let [st (fresh-store)
+          graph (actor/build-graph {:store st})
+          request {:operator-id "operator-1" :op :spring-trap :stake :low
+                   :permit-id "P-1"}
+          result (actor/run-request! graph request {} "thread-7")]
+      (is (= :hold (:disposition (:state result))))
+      (is (empty? (store/records-of st "operator-1"))))))
+
+(deftest holds-an-attempted-kill-decision-op
+  (testing "even a directly-constructed request bypassing the advisor cannot reach commit for an op resembling a kill/harvest-timing decision — no human-approval path exists for a hard hold"
+    (let [st (fresh-store)
+          graph (actor/build-graph {:store st})
+          request {:operator-id "operator-1" :op :make-kill-decision :stake :low
+                   :permit-id "P-1"}
+          result (actor/run-request! graph request {} "thread-8")]
+      (is (= :hold (:disposition (:state result))))
+      (is (empty? (store/records-of st "operator-1"))))))

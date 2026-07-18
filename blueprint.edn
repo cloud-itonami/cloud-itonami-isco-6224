@@ -1,0 +1,11 @@
+[{:itonami.blueprint/social-impact [:wildlife-population-management :rural-livelihoods :regulatory-transparency]
+  :itonami.blueprint/domain :agriculture-natural-resources/hunting-trapping-logistics-coordination
+  :itonami.blueprint/required-technologies [:robotics :identity :audit-ledger]
+  :itonami.blueprint/isco-08 "6224"
+  :itonami.blueprint/name "Hunting and Trapping Logistics Coordination Practice"
+  :itonami.blueprint/governor :hunting-trapping-governor
+  :itonami.blueprint/robotics true
+  :db/id -1
+  :itonami.blueprint/status :public-oss
+  :itonami.blueprint/id "cloud-itonami-isco-6224"
+  :itonami.blueprint/license "AGPL-3.0-or-later"}]
