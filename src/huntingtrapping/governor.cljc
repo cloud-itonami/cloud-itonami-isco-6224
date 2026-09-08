@@ -96,7 +96,7 @@
        registered `:max-supply-order-cost`.
     9. low confidence (< `confidence-floor`)."
   (:require [huntingtrapping.store :as store]
-            [clojure.string :as str]))
+            [kotoba.lang.text :as str]))
 
 (def confidence-floor 0.6)
 
@@ -123,7 +123,7 @@
    "makes the harvest-timing decision" "making the harvest-timing decision"])
 
 (defn- scope-excluded-text? [s]
-  (let [s (str/lower-case (or s ""))]
+  (let [s (str/lower (or s ""))]
     (boolean (some #(str/includes? s %) hunting-execution-scope-exclusion-phrases))))
 
 (defn- needs-permit? [op]
