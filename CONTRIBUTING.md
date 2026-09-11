@@ -21,7 +21,7 @@ behavior.
 - **Never add an op, code path or rationale template that fires a weapon,
   sets or springs a trap, or makes a kill/harvest-timing decision.** Those
   actions are structurally out of scope for this actor (see
-  `src/huntingtrapping/governor.cljc`'s namespace docstring), not merely
+  `src/huntingtrapping/governor.cljk`'s namespace docstring), not merely
   gated — a PR proposing to add such an op, even behind an escalation gate,
   will be rejected regardless of how it is framed.
 - Treat this occupation's workflows as high-risk: add tests for permission,

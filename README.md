@@ -23,7 +23,7 @@ absence is enforced twice, independently: a closed op-allowlist that
 hard-blocks any op outside the four above, and a defense-in-depth text
 scan that hard-blocks any proposal whose rationale claims to finalize
 or execute one of those actions. See
-[`src/huntingtrapping/governor.cljc`](src/huntingtrapping/governor.cljc)'s
+[`src/huntingtrapping/governor.cljk`](src/huntingtrapping/governor.cljk)'s
 namespace docstring for the full structural argument. Any observation
 that MAY warrant permit/season/bag-limit attention is surfaced ONLY
 via `:flag-compliance-concern`, which always escalates immediately to
