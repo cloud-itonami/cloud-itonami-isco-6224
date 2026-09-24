@@ -1,5 +1,5 @@
 (ns huntingtrapping.governor-test
-  (:require [clojure.test :refer [deftest is testing]]
+  (:require [kotoba.test :refer [deftest is testing]]
             [huntingtrapping.store :as store]
             [huntingtrapping.advisor :as advisor]
             [huntingtrapping.governor :as governor]))
