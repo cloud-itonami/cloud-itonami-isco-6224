@@ -1,0 +1,34 @@
+;; What this vertical's robot physically does, declared for
+;; kotoba.robotics.process (kotoba-lang/robotics). `kbb -M:physics` runs it.
+;;
+;; README "Robotics premise": a logistics-coordination robot performs
+;; catch/harvest record entry, equipment-maintenance scheduling and
+;; non-weapon-supplies procurement paperwork for hunters and trappers
+;; (ISCO 6224). It never fires a weapon or sets a trap. Its physical work is
+;; supply logistics: carrying non-weapon supplies up a rough trail to the
+;; field camp, and loading a supply case into the vehicle.
+;;
+;; Every number without a cited source is marked `estimate` in its :basis.
+;; Replacing an estimate with a sourced value is this bot's growth work.
+{:physics/schema "itonami.physical-ai.spec.v1"
+ :repo "cloud-itonami/cloud-itonami-isco-6224"
+ :cases
+ [{:id :supplies-to-field-camp
+   :kind :transport
+   :procedure "tracked carrier robot carries non-weapon supplies (food, fuel canisters, maintenance kit) along a rough trail to the field camp"
+   :params {:mass-kg 100.0 :payload-kg 40.0 :v-max-mps 0.8 :a-max-mps2 0.25
+            :brake-decel-mps2 0.5 :drive-force-n 350.0 :crr 0.12
+            :cog-height-m 0.50 :support-half-length-m 0.40 :max-time-s 3000.0}
+   :sweep {:param :distance-m :values [100.0 200.0 400.0 700.0 1000.0]}
+   :quantity :cycle-time-s
+   :limit {:max 900.0 :basis "estimate: one trail run within 15 minutes allows a resupply round-trip before dusk"}
+   :boundary {:lo 20.0 :hi 2000.0}}
+  {:id :supply-case-into-vehicle
+   :kind :manipulator
+   :procedure "arm loads a non-weapon supply case from the ground into the vehicle's load bed"
+   :params {:l1-m 0.60 :l2-m 0.50 :m1-kg 8.0 :m2-kg 6.0
+            :from [0.70 0.00] :to [0.35 0.85] :duration-s 3.0 :steps 500}
+   :sweep {:param :payload-kg :values [2.0 5.0 10.0 15.0 20.0]}
+   :quantity :peak-tau1-nm
+   :limit {:max 150.0 :basis "estimate: continuous shoulder torque of a ~15 kg payload class arm"}
+   :boundary {:lo 0.5 :hi 40.0}}]}
